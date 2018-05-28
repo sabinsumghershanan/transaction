@@ -1,0 +1,156 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-time/iron-time.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/google-map/google-map.html">
+<link rel="import" href="../css/shared-styles.html">
+
+<dom-module id="transaction-item">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      .display-pic {
+        margin-right: 10px;
+      }
+
+      .background {
+        background-color: #f7f7f7;
+      }
+      .amount-red {
+        color: red;
+      }
+
+      .amount-green {
+        color: green;
+      }
+      google-map {
+        width: 100%;
+        height: 100px;
+      }
+    </style>
+    <paper-item on-click="_handleTransactionSelection">
+      <div class="row">
+        <div class="col-4 col-xs-3">[[name]]</div>
+        <div class="col-4 col-xs-3">
+          <iron-time datetime="[[ when ]]" format="m/dd/yyyy"></iron-time>
+        </div>
+        <div class="col-3 col-xs-1">
+          <span class$="amount-[[_amountColor(amount)]]">€[[amount]]</span>
+        </div>
+      </div>
+    </paper-item>
+    <paper-item-body class$="{{_showOrHide}}">
+      <div class="row">
+        <div class="col-6 col-xs-12 col-md-hidden col-lg-hidden col-xl-hidden">
+            <google-map fit-to-markers api-key="AIzaSyBxHWJTxJ8dnpIJl9Sb-cLNiMYp7-_EA2E">
+                <google-map-marker latitude="[[ latitude ]]" longitude="[[ longitude ]]" draggable="true"></google-map-marker>
+              </google-map>
+        </div>
+        <div class="col-4 col-xs-8 col-md-hidden col-lg-hidden col-xl-hidden">[[address]]</div>
+        <div 
+        class$="amount-[[_amountColor(amount)]] col-2 col-xs-4 col-md-hidden col-lg-hidden col-xl-hidden">
+        &euro; [[ amount ]]</div>
+      </div>
+    </paper-item-body>
+  </template>
+
+  <script>
+    
+    class TranactionItem extends Polymer.Element {
+     
+      static get is() {
+        return 'transaction-item';
+      }
+
+      static get properties() {
+        return {
+          transactionId: {
+            type: String
+          },
+          name: {
+            type: String,
+            value: ''
+          },
+         
+          when: {
+            type: Date,
+            value: new Date()
+          },
+         
+          amount: {
+            type: Number,
+            value: 0.0
+          },
+         
+          showDetails: {
+            type: String,
+            value: null,
+            observer: '_updateShowOrHide'
+          },
+         
+          address: {
+            type: String
+          },
+         
+          latitude: {
+            type: Number
+          },
+         
+          longitude: {
+            type: Number
+          },
+         
+          picture: {
+            type: String
+          },
+         
+          _showOrHide: {
+            type: String,
+            value: 'hide',
+            default: 'hide'
+          },
+          
+        };
+      }
+
+      
+      
+      constructor() {
+        super();
+      }
+
+      _handleTransactionSelection(event) {
+        this.dispatchEvent(new CustomEvent('transaction-item-collapsed-pressed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            id: this.transactionId
+          }
+        }));
+      }
+
+      _updateShowOrHide(newValue, oldValue) {
+        this.set('_showOrHide', newValue === this.transactionId ? 'show' : 'hide');
+        this.set('_showAmount', !(newValue === this.transactionId));
+      }
+
+      _amountColor(_amount) {
+        return (_amount < 0) ? 'red' : 'green'
+      }
+
+      ready() {
+        super.ready();
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+
+        });
+      }
+
+    }
+
+    customElements.define(TranactionItem.is, TranactionItem);
+  </script>
+</dom-module>

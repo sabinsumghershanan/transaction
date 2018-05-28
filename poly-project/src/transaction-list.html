@@ -1,0 +1,95 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="transaction-item.html">
+<dom-module id="transaction-list">
+    <template>
+        <style>
+          :host {
+            display: block;
+          }
+          .background {
+            background-color: #f3f0f0;
+          }
+        </style>
+        <iron-ajax
+            auto
+            url="{{url}}"
+            handle-as="json"
+            last-response="{{_response}}"
+            debounce-duration="300">
+        </iron-ajax>
+        <paper-listbox class="background" attr-for-selected="selected-transaction" selected="{{selectedTransaction}}">
+            <template is="dom-repeat" items="{{_response}}" as="item">
+                <transaction-item selected-transaction="[[item]]" trans-id="{{item.id}}" name="{{item.company}}" when="{{item.date}}" amount="{{item.amount}}"
+                                  address="{{item.address}}" picture="{{item.picture}}" longitude="{{item.longitude}}" latitude="{{item.latitude}}" show-details="{{showHide}}">
+                </transaction-item>
+            </template>
+        </paper-listbox>
+
+    </template>
+    <script>
+
+    class TransactionList extends Polymer.Element {
+
+      static get is() {
+        return 'transaction-list';
+      }
+
+      static get properties() {
+        return {
+          url: {
+            type: String,
+            value: ''
+          },
+          _response: {
+            type: Array,
+            value: function () {
+              return [];
+            }
+          },
+          showHide: {
+            type: Number,
+            value: 0
+          },
+          selectedTransaction: {
+            type: Object,
+            value: function () {
+              return {};
+            },
+            observer: '_onSelectedItem'
+          }
+        };
+      }
+
+      _onSelectedItem(newItem, oldItem) {
+        if (newItem) {
+          this.dispatchEvent(new CustomEvent('transaction-item-selected', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              item: newItem
+            }
+          }));
+        }
+      }
+
+      _handleShowOrHide(event) {
+        this.set('showHide', event.detail.id);
+      }
+      constructor() {
+        super();
+      }
+
+      ready() {
+        super.ready();
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+        });
+        this.addEventListener('transaction-item-collapsed-pressed', this._handleShowOrHide);
+      }
+    }
+
+    window.customElements.define(TransactionList.is, TransactionList);
+  </script>
+</dom-module>

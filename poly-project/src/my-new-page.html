@@ -1,0 +1,140 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="transaction-list.html">
+<link rel="import" href="transaction-details.html">
+<link rel="import" href="../css/shared-styles.html">
+<!--<link rel="import"  href="my-transactions.html">-->
+
+<dom-module id="my-new-page">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+     paper-dropdown-menu, paper-listbox{
+       width : 500px;
+      }
+
+     paper-item, paper-item-body{
+       width : 400px;
+      }
+      .putright{
+        float : right
+      }
+      .green{
+      color: green;
+      }
+
+      .red{
+      color: red;
+      }
+      .center {
+      text-align: center;
+      }
+    </style>
+
+
+    <iron-ajax
+            auto
+            url="https://api.myjson.com/bins/uoze3"
+            handle-as="json"
+            last-response="{{ajaxResponse}}"
+            debounce-duration="300">
+    </iron-ajax>
+    <!--<pre>[[json(ajaxResponse)]]</pre>-->
+    <div class="center">
+      <h1>Account OverView</h1>
+        <paper-dropdown-menu label="Selected Amount" id="accountDropDown">
+          <paper-listbox is="dom-repeat" slot="dropdown-content" items="[[ajaxResponse]]"  attr-for-selected="id" selected="{{itemId}}">
+            <template is="dom-repeat" items="[[ajaxResponse]]">
+              <paper-item id="[[item.id]]">
+                <paper-item-body two-line>
+                  <div secondary>
+                  <template is="dom-if" if="[[_checkBalance(item.balance)]]">
+                    <div>[[item.iban]]  <span class="putright green">€[[item.balance]]</span></div>
+                  </template>
+                  <template is="dom-if" if="[[!_checkBalance(item.balance)]]">
+                    <div>[[item.iban]]  <span class="putright red">€[[item.balance]]</span></div>
+                   </template>
+                  </div>
+                <div>[[item.name]]</div>
+                </paper-item-body>
+              </paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+    </div>
+    <div class="row">
+      <div class="col-6 col-xs-12">
+        <transaction-list url="{{_transactionUrl}}"></transaction-list>
+
+        <!-- transaction details-->
+      </div>
+      <div class="col-6 col-xs-hidden">
+        <transaction-details
+          transaction-id="{{selectedTransaction.id}}"
+          name="{{selectedTransaction.company}}" when="{{selectedTransaction.date}}" amount="{{selectedTransaction.amount}}"
+          address="{{selectedTransaction.address}}"
+          picture="{{selectedTransaction.picture}}"
+          longitude="{{selectedTransaction.longitude}}"
+          latitude="{{selectedTransaction.latitude}}">
+        </transaction-details>
+      </div>
+    </div>
+
+    <my-transactions transactions-id="[[itemId]]"></my-transactions>
+  </template>
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+    class MyNewView extends Polymer.Element {
+     static get is() {
+      return 'my-new-page';
+      }
+
+      static get properties() {
+        return {
+         itemId: String,
+         _transactionUrl: {
+            type: String
+          },
+          selectedAccount: {
+            type: Object,
+            value: function () {
+              return {};
+            },
+            observer: '_callbackSelectedAccount'
+          },
+          selectedTransaction: {
+            type: Object,
+            value :  function () {
+              return {};
+            }
+          }
+      };
+      }
+      ready() {
+        super.ready()
+        this.$.accountDropDown.addEventListener('iron-select', this._callbackmethod.bind(this));
+        this.addEventListener('transaction-item-selected', this._handleSelectedTransaction);
+
+      }
+      _callbackmethod(event){
+        this.id = event.detail.item.id;
+        this.set('_transactionUrl', `https://api.myjson.com/bins/${this.id}`);
+      }
+      _handleSelectedTransaction(event) {
+        this.set('selectedTransaction', event.detail.item);
+      }
+
+      _checkBalance(value){
+      return (value >= 0) ? true : false;
+      }
+    }
+   customElements.define(MyNewView.is, MyNewView);
+  </script>
+</dom-module>

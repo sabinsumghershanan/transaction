@@ -1,0 +1,123 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-time/iron-time.html">
+<link rel="import" href="../bower_components/google-map/google-map.html">
+<link rel="import" href="../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../css/shared-styles.html">
+<dom-module id="transaction-details">
+    <template>
+        <style include="shared-styles">
+          :host {
+            display: block;
+          }
+
+          google-map {
+            display: inline-block;
+            width: 50%;
+            height: 300px;
+            margin-left: 200px;
+          }
+          .line {
+            width: 58%;
+            margin-left: 508px;
+          }
+        </style>
+        <template is="dom-if" if="{{transactionId}}">
+            <div class="row">
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-1">
+                            <img src="[[picture]]" alt="[[name]]">
+                        </div>
+                        <div class="col-4">
+                            <label for="label">To:</label>
+                            <div>[[name]]</div>
+                        </div>
+                        <div class="col-4">
+                            <label for="label">When:</label>
+                            <div><iron-time datetime="[[when]]" format="m/dd/yyyy"></iron-time></div>
+                        </div>
+                        <div class="col-3">
+                            <label for="label">Amount:</label>
+                            <div class$="{{_amountColor(amount)}}">&euro; [[amount]]</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-12">
+                    <google-map fit-to-markers api-key="AIzaSyBxHWJTxJ8dnpIJl9Sb-cLNiMYp7-_EA2E">
+                        <google-map-marker latitude="[[latitude]]" longitude="[[longitude]]" draggable="true"></google-map-marker>
+                    </google-map>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-12">
+                    <h3>Address:</h3>
+                    <div>[[address]]</div>
+                    <div>[[latitude]], [[longitude]]</div>
+                </div>
+            </div>
+        </template>
+    </template>
+
+    <script>
+
+    class TransactionDetails extends Polymer.Element {
+
+      static get is() {
+        return 'transaction-details';
+      }
+      static get properties() {
+        return {
+          transactionId: {
+            type: String
+          },
+          name: {
+            type: String,
+            value: ''
+          },
+
+          when: {
+            type: Date,
+            value: new Date()
+          },
+
+          amount: {
+            type: Number,
+            value: 0.0
+          },
+
+          address: {
+            type: String
+          },
+
+          latitude: {
+            type: Number
+          },
+
+          longitude: {
+            type: Number
+          },
+
+          picture: {
+            type: String
+          }
+        };
+      }
+      constructor() {
+        super();
+      }
+      _amountColor(amount) {
+        return amount < 0 ? 'red' : 'green';
+      }
+      ready() {
+        super.ready();
+        Polymer.RenderStatus.afterNextRender(this, function () {
+        });
+      }
+    }
+    window.customElements.define(TransactionDetails.is, TransactionDetails);
+  </script>
+</dom-module>

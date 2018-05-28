@@ -1,0 +1,160 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animations.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-time/iron-time.html">
+<link rel="import" href="../bower_components/google-map/google-map.html">
+
+<dom-module id="my-transactions">
+    <!-- Defines the element's style and local DOM -->
+    <template>
+        <style>
+          :host {
+            display: block;
+            padding: 16px;
+          }
+          .transaction {
+            width: 71%;
+          }
+          .putright{
+            float : right
+          }
+          .green{
+            color: green;
+          }
+
+          .center {
+            text-align: center;
+          }
+
+          .red{
+            color: red;
+          }
+          .top {
+            margin-top: -26px;
+          }
+          .inline {
+            display: inline-flex;
+          }
+          .line {
+            width: 58%;
+            margin-left: 508px;
+          }
+          google-map {
+           height:200px;
+           width:300px;
+           float: right;
+           margin-right: 257px;
+          }
+        </style>
+
+        <iron-ajax
+                auto
+                handle-as="json"
+                on-response="handleResponse"
+                id="xhrTransactions">
+        </iron-ajax>
+        <div class="center">
+            <h1>[[_transactionsTitle]]</h1>
+            <transaction-item></transaction-item>
+        </div>
+    </template>
+    <!-- Creates the element's prototype and registers it -->
+    <script>
+    class MyTransactions extends Polymer.Element {
+     static get is() { return 'my-transactions'; }
+
+     static get properties() {
+        return {
+        _transactionsTitle: String,
+         transactionsId : {
+         type: String,
+         observer: '_transactionIdChanged'
+         },
+         _transactions: Array,
+         showDetails: {
+            type: String,
+            value: null,
+            observer: '_updateShowOrHide'
+          },
+
+          address: {
+            type: String
+          },
+
+          latitude: {
+            type: Number
+          },
+
+          longitude: {
+            type: Number
+          },
+
+          picture: {
+            type: String
+          },
+
+          _showOrHide: {
+            type: String,
+            value: 'hide',
+            default: 'hide'
+          },
+        }
+
+      }
+
+     ready(){
+     if(!this.transactionsId){
+       this._transactions = []
+     }
+     super.ready();
+     }
+
+     _updateShowOrHide(newValue, oldValue) {
+        this.set('_showOrHide', newValue === this.transactionsId ? 'show' : 'hide');
+        this.set('_showAmount', !(newValue === this.transactionsId));
+      }
+
+    _checkBalance(value){
+        return(value > 0) ? true : false;
+     }
+
+    _transactionIdChanged(value){
+     if(!this.transactionsId){
+           this._transactions = [];
+           this._transactionsTitle = '';
+         }
+    else{
+         this.$.xhrTransactions.url = `https://api.myjson.com/bins/${value}`;
+         this.$.xhrTransactions.generateRequest();
+         }
+    }
+
+    handleResponse(event){
+       this._transactions = event.detail.response;
+       if(this._transactions.length != 0){
+        this._transactionsTitle = 'My Transactions List';
+       }
+    }
+
+    _handleTransactionSelection(event) {
+        this.dispatchEvent(new CustomEvent('transaction-item-collapsed-pressed', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            id: this.transactionsId
+          }
+        }));
+      }
+
+    }
+   customElements.define(MyTransactions.is, MyTransactions);
+
+    </script>
+</dom-module>
